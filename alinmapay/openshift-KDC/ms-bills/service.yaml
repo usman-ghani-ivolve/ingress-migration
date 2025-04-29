@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: bills
+spec:
+  selector:
+    app: bills
+  ports:
+  - protocol: TCP
+    port: 443
+    targetPort: 8082
+  type: ClusterIP

@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kdc-market
+spec:
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: market
+  template:
+    metadata:
+      labels:
+        app: market
+    spec:
+      dnsConfig:
+        searches:
+        - me.alinma.internal
+      containers:
+      - name: market
+        image: 'registry-kdc.alinma.internal/alinmapay-v2/ms-market:e9b7b04'
+        env:
+          - name: TZ
+            value: "Asia/Riyadh"
+        envFrom:
+        - configMapRef:
+            name: market
+        - secretRef:
+            name: market
+        ports:
+        - containerPort: 8983
+        readinessProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - response=$(curl -s http://localhost:8983/v2/alinmapay/market/actuator/health)
+            - echo $response | grep -q '"readinessState":{"status":"UP"}'
+          initialDelaySeconds: 20
+          periodSeconds: 10
+          failureThreshold: 10
+        livenessProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - response=$(curl -s http://localhost:8983/v2/alinmapay/market/actuator/health)
+            - echo $response | grep -q '"livenessState":{"status":"UP"}'
+          initialDelaySeconds: 30
+          periodSeconds: 15
+          failureThreshold: 15
+        resources:
+          requests:
+            cpu: "250m"
+            memory: "2Gi"
+          limits:
+            memory: "2Gi"
+        volumeMounts:
+        - mountPath: /home/default/Alinmapay-KDC-driver.trust
+          name: trust
+          readOnly: true
+          subPath: Alinmapay-KDC-driver.trust
+      volumes:
+      - name: trust
+        secret:
+          defaultMode: 420
+          secretName: trust

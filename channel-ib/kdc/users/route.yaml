@@ -1,0 +1,21 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  annotations:
+    haproxy.router.openshift.io/timeout: 300s
+  labels:
+    app: users
+  name: users
+  namespace: channel-dr
+spec:
+  host: online-new.alinma.com
+  path: /retail/user-management
+  port:
+    targetPort: http
+  tls:
+    termination: edge
+  to:
+    kind: Service
+    name: users
+    weight: 100
+  wildcardPolicy: None

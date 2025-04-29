@@ -1,0 +1,16 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  labels:
+    app: authentication
+  name: authentication
+spec:
+  host: online-new.alinma.com
+  path: /retail/authentication
+  port:
+    targetPort: http
+  tls:
+    termination: edge
+  to:
+    kind: Service
+    name: authentication

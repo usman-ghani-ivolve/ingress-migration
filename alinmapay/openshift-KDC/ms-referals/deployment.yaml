@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kdc-referals
+spec:
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: referals
+  template:
+    metadata:
+      labels:
+        app: referals
+    spec:
+      dnsConfig:
+        searches:
+        - me.alinma.internal
+      containers:
+      - name: referals
+        image: 'registry-kdc.alinma.internal/alinmapay-v2/ms-referals:9e9d3b0'
+        env:
+          - name: TZ
+            value: "Asia/Riyadh"
+        envFrom:
+        - configMapRef:
+            name: referals
+        - secretRef:
+            name: referals
+        ports:
+        - containerPort: 8983
+        readinessProbe:
+          httpGet:
+            path: /v2/alinmapay/referrals/actuator/health
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 20
+          periodSeconds: 10
+          failureThreshold: 10
+        livenessProbe:
+          httpGet:
+            path: /v2/alinmapay/referrals/actuator/health
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 30
+          periodSeconds: 15
+          failureThreshold: 15
+        resources:
+          requests:
+            cpu: "250m"
+            memory: "2Gi"
+          limits:
+            memory: "2Gi"
+        volumeMounts:
+        - mountPath: /home/default/Alinmapay-KDC-driver.trust
+          name: trust
+          readOnly: true
+          subPath: Alinmapay-KDC-driver.trust
+      volumes:
+      - name: trust
+        secret:
+          defaultMode: 420
+          secretName: trust            

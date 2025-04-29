@@ -1,0 +1,22 @@
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: admin
+  labels:
+    app: admin
+    group: cib-api
+    provider: jkube
+  annotations:
+    haproxy.router.openshift.io/timeout: 120s 
+spec:
+  host: it-admin-production.apps.ocpprod-adc.me.alinma.internal
+  path: /admin
+  to:
+    kind: Service
+    name: admin
+    weight: 100
+  port:
+    targetPort: 8080
+  tls:
+    termination: edge
+  wildcardPolicy: None

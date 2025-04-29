@@ -1,0 +1,22 @@
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: helper-tools
+  labels:
+    app: helper-tools
+    group: cib-api
+    provider: jkube
+  annotations:
+    haproxy.router.openshift.io/timeout: 120s
+spec:
+  host: helper-tools.apps.ocpprod-adc.me.alinma.internal
+  path: /helper-tools
+  to:
+    kind: Service
+    name: helper-tools
+    weight: 100
+  port:
+    targetPort: 8080
+  tls:
+    termination: edge
+  wildcardPolicy: None

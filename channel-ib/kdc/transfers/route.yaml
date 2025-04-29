@@ -1,0 +1,16 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  labels:
+    app: transfers
+  name: transfers
+spec:
+  host: online-new.alinma.com
+  path: /retail/transfer-management
+  port:
+    targetPort: http
+  tls:
+    termination: edge
+  to:
+    kind: Service
+    name: transfers

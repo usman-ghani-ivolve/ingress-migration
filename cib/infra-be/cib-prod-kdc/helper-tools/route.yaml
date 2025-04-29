@@ -1,0 +1,22 @@
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: kdc-helper-tools
+  labels:
+    app: helper-tools
+    group: cib-api
+    provider: jkube
+  annotations:
+    haproxy.router.openshift.io/timeout: 120s
+spec:
+  host: helper-tools.apps.ocp-cb-kdc.alinma.internal
+  path: /helper-tools
+  to:
+    kind: Service
+    name: kdc-helper-tools
+    weight: 100
+  port:
+    targetPort: 8080
+  tls:
+    termination: edge
+  wildcardPolicy: None

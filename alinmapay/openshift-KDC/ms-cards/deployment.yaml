@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kdc-cards
+spec:
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: cards
+  template:
+    metadata:
+      labels:
+        app: cards
+    spec:
+      dnsConfig:
+        searches:
+        - me.alinma.internal
+      containers:
+      - name: cards
+        image: 'registry-kdc.alinma.internal/alinmapay-v2/ms-cards:fe87ba6'
+        env:
+          - name: TZ
+            value: "Asia/Riyadh"
+        envFrom:
+        - configMapRef:
+            name: cards
+        - secretRef:
+            name: cards
+        ports:
+        - containerPort: 8982
+        readinessProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - response=$(curl -s http://localhost:8982/v2/alinmapay/cards-management/actuator/health)
+            - echo $response | grep -q '"readinessState":{"status":"UP"}'
+          initialDelaySeconds: 20
+          periodSeconds: 10
+          failureThreshold: 10
+        livenessProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - response=$(curl -s http://localhost:8982/v2/alinmapay/cards-management/actuator/health)
+            - echo $response | grep -q '"livenessState":{"status":"UP"}'
+          initialDelaySeconds: 30
+          periodSeconds: 15
+          failureThreshold: 15
+        resources:
+          requests:
+            cpu: "250m"
+            memory: "2Gi"
+          limits:
+            memory: "2Gi"
+        volumeMounts:
+        - mountPath: /home/default/Alinmapay-KDC-driver.trust
+          name: trust
+          readOnly: true
+          subPath: Alinmapay-KDC-driver.trust
+      volumes:
+      - name: trust
+        secret:
+          defaultMode: 420
+          secretName: trust

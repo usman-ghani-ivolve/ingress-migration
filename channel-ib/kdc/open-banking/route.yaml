@@ -1,0 +1,16 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  labels:
+    app: open-banking
+  name: open-banking
+spec:
+  host: online-new.alinma.com
+  path: /api/open-banking
+  port:
+    targetPort: http
+  tls:
+    termination: edge
+  to:
+    kind: Service
+    name: open-banking

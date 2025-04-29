@@ -1,0 +1,16 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  labels:
+    app: certifications
+  name: certifications
+spec:
+  host: online-new.alinma.com
+  path: /api/accredited-certifications
+  port:
+    targetPort: http
+  tls:
+    termination: edge
+  to:
+    kind: Service
+    name: certifications

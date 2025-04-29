@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kdc-localization
+spec:
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: localization
+  template:
+    metadata:
+      labels:
+        app: localization
+    spec:
+      dnsConfig:
+        searches:
+        - me.alinma.internal
+      containers:
+      - name: localization
+        image: 'registry-kdc.alinma.internal/alinmapay-v2/localization-management-ms:cc1a12e'
+        env:
+          - name: TZ
+            value: "Asia/Riyadh"
+        envFrom:
+        - configMapRef:
+            name: localization
+        - secretRef:
+            name: localization
+        ports:
+        - containerPort: 8080
+        resources:
+          requests:
+            cpu: "250m"
+            memory: "2Gi"
+          limits:
+            memory: "2Gi"
+        volumeMounts:
+        - mountPath: /home/default/Alinmapay-KDC-driver.trust
+          name: trust
+          readOnly: true
+          subPath: Alinmapay-KDC-driver.trust
+      volumes:
+      - name: trust
+        secret:
+          defaultMode: 420
+          secretName: trust

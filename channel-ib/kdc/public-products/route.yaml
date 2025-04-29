@@ -1,0 +1,16 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  labels:
+    app: public-products
+  name: public-products
+spec:
+  host: online-new.alinma.com
+  path: /api/public-products
+  port:
+    targetPort: http
+  tls:
+    termination: edge
+  to:
+    kind: Service
+    name: public-products
