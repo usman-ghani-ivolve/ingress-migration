@@ -1,0 +1,16 @@
+- name: Create Nginx Ingress CRs
+  ansible.builtin.template:
+    src: nginx.yaml.j2
+    dest:  "{{ item_path.split('/')[:-1] | join('/') }}/{{ ingress_class }}.yaml"
+  loop: "{{ ingress_zones | product(dir_list) | list }}"
+  loop_control:
+    label: >-
+      App: {{ item_path.split('/')[0] }},
+      Cluster: {{ item_path.split('/')[-3] }},
+      IngressClass: {{ ingress_class }},
+      Service: {{ item_path.split('/')[-2] }}
+  vars:
+    ingress_class: "{{ item.0 }}"
+    route: "{{ lookup('file', item.1) | from_yaml }}"
+    domain: "{{ route.spec.host }}"
+    item_path: "{{ item[1] }}"

@@ -1,0 +1,8 @@
+base_path: "./"
+ingress_zones:
+  - nginx-dmz
+  - nginx-core
+target_domains:
+  - online-new.alinma.com
+  - business.iz.com.sa
+  - corporate.alinma.com

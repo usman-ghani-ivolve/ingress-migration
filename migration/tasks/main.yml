@@ -1,0 +1,3 @@
+- ansible.builtin.include_tasks: common.yml
+- ansible.builtin.include_tasks: migrate.yml
+- ansible.builtin.include_tasks: new-domain.yml

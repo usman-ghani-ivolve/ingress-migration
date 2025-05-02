@@ -1,0 +1,40 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ route.metadata.name }}
+{% if route.metadata.labels is defined %}
+  labels:
+{% for key, value in route.metadata.labels.items() %}
+    {{ key }}: {{ value }}
+{% endfor %}
+{% endif %}
+{% if route.metadata.annotations is defined %}
+  annotations:
+{% for key, value in route.metadata.annotations.items() %}
+{%if key == "haproxy.router.openshift.io/timeout" %}
+    nginx.org/proxy-connect-timeout: {{ value }}
+    nginx.org/proxy-read-timeout: {{ value }}
+    nginx.org/client-max-body-size: {{ value }}
+{% endif %}
+{% if key == "haproxy.router.openshift.io/rewrite-target" %}
+    nginx.ingress.kubernetes.io/rewrite-target: {{ value }}
+{% endif %}
+{% endfor %}
+{% endif %}
+spec:
+  ingressClassName: {{ ingress_class }}
+  rules:
+    - host: {{ domain | default ('') }}
+      http:
+        paths:
+          - path: {{ route.spec.path | default('/') }}
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ route.spec.to.name }}
+                port:
+                  name: {{ route.spec.port.targetPort}}
+  tls:
+    - hosts:
+        - {{ domain | default('') }}
+      secretName: {{ item_path.split('/')[-2] }}-{{ item_path.split('/')[-3] }}-tls-secret

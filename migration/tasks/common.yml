@@ -1,0 +1,11 @@
+- name: Find all directories under {{ base_path }}
+  ansible.builtin.find:
+    paths: "{{ base_path }}"
+    file_type: file
+    recurse: yes
+    pattern: route.yaml
+  register: found_dirs
+
+- name: Set list of directory paths
+  ansible.builtin.set_fact:
+    dir_list: "{{ found_dirs.files | map(attribute='path') | list }}"

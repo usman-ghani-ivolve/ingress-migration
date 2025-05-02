@@ -1,0 +1,30 @@
+- name: Create Nginx Ingress CR
+  ansible.builtin.blockinfile:
+    path: "{{ item_path.split('/')[:-2] | join('/') }}/{{ ingress_class }}-{{ domain }}.yaml"
+    create: true
+    block: "{{ lookup('template', 'nginx.yaml.j2') }}"
+    marker: "---"
+    marker_end: ""
+  loop: "{{ ingress_zones | product(dir_list) | list }}"
+  loop_control:
+    label: >-
+      App: {{ item_path.split('/')[0] }},
+      Cluster: {{ item_path.split('/')[-3] }},
+      IngressClass: {{ ingress_class }},
+      Domain: {{ route.spec.host | default('') }}
+      Service: {{ item_path.split('/')[-2] }},
+  vars:
+    ingress_class: "{{ item.0 }}"
+    route: "{{ lookup('file', item.1) | from_yaml }}"
+    domain: >-
+      {{
+        (
+          "online-new-soft.alinma.com" if route.spec.host == "online-new.alinma.com" else
+          "business-soft.iz.com.sa" if route.spec.host == "business.iz.com.sa" else
+          "corporate-soft.alinma.com" if route.spec.host == "corporate.alinma.com"
+        ) | trim | replace(' ', '')
+      }}
+    item_path: "{{ item[1] }}"
+  when:
+    - route.spec.host is defined
+    - route.spec.host in target_domains
