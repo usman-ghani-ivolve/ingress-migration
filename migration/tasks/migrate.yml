@@ -14,3 +14,50 @@
     route: "{{ lookup('file', item.1) | from_yaml }}"
     domain: "{{ route.spec.host }}"
     item_path: "{{ item[1] }}"
+  when:
+    - (lookup('file', item.1) | from_yaml) != ''
+
+- name: Extract routes with TLS configuration
+  ansible.builtin.set_fact:
+    __domains: "{{ __domains | default([]) + [current] }}"
+  vars:
+    ingress_class: "{{ item.0 }}"
+    route: "{{ lookup('file', item.1) | from_yaml }}"
+    domain: "{{ route.spec.host }}"
+    item_path: "{{ item[1] }}"
+    current:
+      domain: "{{ domain }}"
+      path: "{{ item_path }}"
+      route: "{{ route }}"
+  loop: "{{ ingress_zones | product(dir_list) | list }}"
+  loop_control:
+    label: >-
+      App: {{ item_path.split('/')[0] }},
+      Cluster: {{ item_path.split('/')[-3] }},
+      IngressClass: {{ ingress_class }},
+      Service: {{ item_path.split('/')[-2] }}
+  when:
+    - route is defined
+    - route != ''
+    - route.spec.tls.caCertificate is defined
+    - route.spec.tls.certificate is defined
+    - route.spec.tls.key is defined
+
+- name: Create secret CRs
+  ansible.builtin.template:
+    src: secret.yaml.j2
+    dest: "{{ item.path.split('/')[:-2] | join('/') }}/{{ domain | replace('.', '-') }}-tls-secret.yaml"
+    force: no
+  vars:
+    route: "{{ item.route }}"
+    domain: "{{ item.domain }}"
+    cert_chain: |-
+      {{ route.spec.tls.certificate }}
+      {{ route.spec.tls.caCertificate }}
+  loop: "{{ __domains }}"
+  loop_control:
+    label: >-
+      App: {{ item.path.split('/')[0] }},
+      Cluster: {{ item.path.split('/')[-3] }},
+      SecretName: {{ domain | replace('.', '-') }}-tls-secret,
+      Domain: {{ item.domain }}

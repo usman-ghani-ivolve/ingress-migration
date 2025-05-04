@@ -1,6 +1,11 @@
 
 #!/bin/bash
 
-rm cib/*/*/*.yaml channel-ib/*/*.yaml
+rm  alinmapay/*/*/nginx-* \
+    alinmapay/*/*.yaml \
+    channel-ib/*/*.yaml \
+    channel-ib/*/*/nginx-* \
+    cib/*/*/*/nginx-* \
+    cib/*/*/*.yaml
 find . -name nginx-dmz.yaml | xargs rm
 

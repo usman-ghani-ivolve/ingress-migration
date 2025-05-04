@@ -24,7 +24,7 @@ metadata:
 spec:
   ingressClassName: {{ ingress_class }}
   rules:
-    - host: {{ domain | default ('') }}
+    - host: {{ domain }}
       http:
         paths:
           - path: {{ route.spec.path | default('/') }}
@@ -34,7 +34,9 @@ spec:
                 name: {{ route.spec.to.name }}
                 port:
                   name: {{ route.spec.port.targetPort}}
+{% if route.spec.tls.certificate is defined and route.spec.tls.caCertificate is defined %}
   tls:
     - hosts:
-        - {{ domain | default('') }}
-      secretName: {{ item_path.split('/')[-2] }}-{{ item_path.split('/')[-3] }}-tls-secret
+        - {{ domain }}
+      secretName: {{ domain | replace('.', '-') }}-tls-secret
+{% endif %}

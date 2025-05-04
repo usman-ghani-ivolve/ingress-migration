@@ -1,4 +1,4 @@
-- name: Create Nginx Ingress CR
+- name: Create Nginx Ingress CR for new domains
   ansible.builtin.blockinfile:
     path: "{{ item_path.split('/')[:-2] | join('/') }}/{{ ingress_class }}-{{ domain }}.yaml"
     create: true
